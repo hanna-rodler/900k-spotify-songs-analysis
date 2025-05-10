@@ -3,17 +3,16 @@ Team Members: Haberl Laura, Kothbauer Tobia, Rodler Hanna
 
 ## Pipeline
 Raw Data (CSV)
-    
-    ↓ Ingest
+
+↓ Ingest
 
 Apache Spark (Extract - Transform - Load & Cleaning)
     
-    ↓ Save
+↓ Save
 
 
 Parquet Files
-    
-    ↓ Analysse
+↓ Analyse
 
 Spark SQL / DataFrame API
 
