@@ -12,15 +12,17 @@ Apache Spark (Extract - Transform - Load & Cleaning)
 
 
 Parquet Files
+
 ↓ Analyse
 
 Spark SQL / DataFrame API
 
-    ↓ Output results
+↓ Output results
 
 
 Tableau
-    ↓ Visualize insights
+
+↓ Visualize insights
 
 
 ## Analysations
