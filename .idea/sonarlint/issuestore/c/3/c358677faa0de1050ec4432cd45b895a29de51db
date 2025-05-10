@@ -1,0 +1,30 @@
+
+V	java:S106"9Replace this use of System.out or System.err by a logger.(Üø±¶8±“«øé1
+d
+java:S1192Y"GDefine a constant instead of duplicating this literal "type_2" 3 times.(ÄÕ˜ğ8İåæ÷é1
+i
+java:S1192X"GDefine a constant instead of duplicating this literal "number" 5 times.(–œ·ûÿÿÿÿ8¼”øé1
+V	java:S106†"9Replace this use of System.out or System.err by a logger.(’¸–8²‘ı÷é1
+U	java:S106"9Replace this use of System.out or System.err by a logger.(Üø±¶8­Ñü÷é1
+U	java:S106a"9Replace this use of System.out or System.err by a logger.(»ãÑå8³Š÷é1
+e
+java:S1192Q"HDefine a constant instead of duplicating this literal "pokemon" 8 times.(çå¤÷8”õÉ÷é1
+n
+java:S1192K"QDefine a constant instead of duplicating this literal "big_data_pokemon" 9 times.(Çì¹ù8ä¥÷é1
+V	java:S106‡"9Replace this use of System.out or System.err by a logger.(Üø±¶8²‘ı÷é1
+B
+java:S1602F",Remove useless curly braces around statement(‘¢©ü
+V	java:S106”"9Replace this use of System.out or System.err by a logger.(’¸–8Ø„°øé1
+l
+java:S1192["JDefine a constant instead of duplicating this literal "legendary" 3 times.(ÜÂÖ×úÿÿÿÿ8İåæ÷é1
+g	java:S1127"FDefine and throw a dedicated exception instead of using a generic one.(Ò‚Òéüÿÿÿÿ8î‡¦÷é1
+S	java:S106G"9Replace this use of System.out or System.err by a logger.(Ÿÿã€ùÿÿÿÿ
+a
+java:S21478"DCombine this catch with the one at line 54, which has the same body.(óûìœ8î‡¦÷é1
+V	java:S106•"9Replace this use of System.out or System.err by a logger.(Üø±¶8Ø„°øé1
+h
+java:S1192V"KDefine a constant instead of duplicating this literal "generation" 8 times.(åıßİ8…›Ø÷é1
+g	java:S1129"FDefine and throw a dedicated exception instead of using a generic one.(Ò‚Òéüÿÿÿÿ8î‡¦÷é1
+V	java:S106"9Replace this use of System.out or System.err by a logger.(’¸–8±“«øé1
+S	java:S106B"9Replace this use of System.out or System.err by a logger.(—ñì˜şÿÿÿÿ
+U	java:S106~"9Replace this use of System.out or System.err by a logger.(’¸–8…ªğ÷é1

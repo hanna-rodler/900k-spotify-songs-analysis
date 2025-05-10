@@ -1,0 +1,14 @@
+
+U	java:S106V"9Replace this use of System.out or System.err by a logger.(»ãÑå8ÈÅöøé1
+Z
+java:S21476"DCombine this catch with the one at line 52, which has the same body.(óûìœ
+`	java:S1127"FDefine and throw a dedicated exception instead of using a generic one.(Ò‚Òéüÿÿÿÿ
+Z	java:S106`"9Replace this use of System.out or System.err by a logger.(Í©ïˆúÿÿÿÿ8‚®Œùé1
+g
+java:S1128"ERemove this unused import 'com.datastax.oss.driver.api.core.cql.Row'.(–­ß¿úÿÿÿÿ8ååøé1
+m
+java:S1128"KRemove this unused import 'com.datastax.oss.driver.api.core.cql.ResultSet'.(°‡ÈÂøÿÿÿÿ8ååøé1
+T	java:S106_"9Replace this use of System.out or System.err by a logger.(éÉš8¢îøé1
+w
+java:S1192@"UDefine a constant instead of duplicating this literal "big_data_pokemon_dao" 4 times.(üØŞ¾ıÿÿÿÿ8ù€÷øé1
+`	java:S1125"FDefine and throw a dedicated exception instead of using a generic one.(Ò‚Òéüÿÿÿÿ
