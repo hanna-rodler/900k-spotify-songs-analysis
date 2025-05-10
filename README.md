@@ -2,25 +2,25 @@
 Team Members: Haberl Laura, Kothbauer Tobia, Rodler Hanna
 
 ## Pipeline
-[Raw Data (CSV)] 
+Raw Data (CSV)
     
     ↓ Ingest
 
-[Apache Spark (Extract - Transform - Load & Cleaning)] 
+Apache Spark (Extract - Transform - Load & Cleaning)
     
     ↓ Save
 
 
-[Parquet Files] 
+Parquet Files
     
     ↓ Analysse
 
-[Spark SQL / DataFrame API]
+Spark SQL / DataFrame API
 
     ↓ Output results
 
 
-[Tableau] 
+Tableau
     ↓ Visualize insights
 
 
