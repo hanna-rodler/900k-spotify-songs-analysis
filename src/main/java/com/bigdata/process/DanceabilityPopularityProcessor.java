@@ -20,8 +20,6 @@ public class DanceabilityPopularityProcessor {
                 .config("spark.driver.bindAddress", "127.0.0.1")
                 .getOrCreate();
 
-        JavaSparkContext jsc = new JavaSparkContext(spark.sparkContext());
-
         // Spark appearenntly sets "snappy" compression automatically
         //read csv
         Dataset<Row> df = spark.read()
