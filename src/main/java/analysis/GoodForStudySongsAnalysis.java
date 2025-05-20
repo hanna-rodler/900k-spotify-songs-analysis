@@ -1,31 +1,5 @@
 package analysis;
 
-// good for Work/Study
-
-// 1) vs. all others.
-// 2) vs. [Good For Party, Good for Exercise, Running, Good for Driving, Good for Social Gathering]
-// 3) similar to [Good for Relaxation/Meditation?, Good for Yoga / Stretching?]
-
-// I have songs with different tags that are each 0 for false and 1 for true. I want to compare the songs with the tags true fo "Good for Work/Study", "Good for Relaxation/Meditation" and "Good for Yoga / Stretching" with the songs with the tags true for "Good For Party", "Good for Exercise, Running", "Good for Driving" and "Good for Social Gathering".
-
-/*
- start:
- - tempo
- - loudness (-5.45db)
- - energy <- less
- - speechiness <- less
- - positiveness <- more
- - instrumentalness <- more
- - danceability?
- - acousticness?
- */
-
-/* further:
- - emotion (joy, surprise, sadness
- - time signature
- - key?
- */
-
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SaveMode;
@@ -39,7 +13,7 @@ import static org.apache.spark.sql.functions.*;
 
 public class GoodForStudySongsAnalysis {
     private static final String PARQUET_ROOT_FOLDER = "data/processed/";
-    private static final String CSV_OUTPUT_PATH = "data/analysis_results/good_for_study_csv.csv";
+    private static final String CSV_OUTPUT_PATH = "data/analysis_results/good_for_study.csv";
 
     public static void main(String[] args) {
         System.setProperty("hadoop.home.dir", "C:/hadoop/");
@@ -278,7 +252,7 @@ public class GoodForStudySongsAnalysis {
         goodForStudySongs.show(5, false);
         Dataset<Row> goodForStudySongsRes = calcAverages(goodForStudySongs);
         goodForStudySongsRes.show();
-        goodForStudySongs.write()
+        goodForStudySongsRes.write()
                 .mode(SaveMode.Overwrite)
                 .option("header", "true")
                 .csv("data/analysis_results/good_for_study_songs.csv");
@@ -302,7 +276,7 @@ public class GoodForStudySongsAnalysis {
         goodForCalmSongs.show(5, false);
         Dataset<Row> goodForCalmSongsRes = calcAverages(goodForCalmSongs);
         goodForCalmSongsRes.show();
-        goodForCalmSongs.write()
+        goodForCalmSongsRes.write()
                 .mode(SaveMode.Overwrite)
                 .option("header", "true")
                 .csv("data/analysis_results/good_for_calmness_songs.csv");
@@ -323,7 +297,7 @@ public class GoodForStudySongsAnalysis {
         Dataset<Row> goodPartySongsAvgs = calcAverages(goodForPartySongs);
         System.out.println("Good for partying songs" + goodForPartySongs.count());
         goodPartySongsAvgs.show();
-        goodForPartySongs.write()
+        goodPartySongsAvgs.write()
                 .mode(SaveMode.Overwrite)
                 .option("header", "true")
                 .csv("data/analysis_results/good_for_party_songs.csv");
@@ -337,6 +311,8 @@ public class GoodForStudySongsAnalysis {
 
 */
 
+        // TODO: merge activity / calmness / party / study in code.
+
         // active songs = good for party, running, exercise
         Dataset<Row> goodForActiveSongs = tagCompDf.filter(
                 col("good_for_party").equalTo(1)
@@ -347,7 +323,7 @@ public class GoodForStudySongsAnalysis {
         goodForActiveSongs.show(5, false);
         Dataset<Row> goodForActiveSongsRes = calcAverages(goodForActiveSongs);
         goodForActiveSongsRes.show();
-        goodForActiveSongs.write()
+        goodForActiveSongsRes.write()
                 .mode(SaveMode.Overwrite)
                 .option("header", "true")
                 .csv("data/analysis_results/good_for_activities_songs.csv");

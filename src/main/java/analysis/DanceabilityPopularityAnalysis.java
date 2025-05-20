@@ -74,6 +74,10 @@ public class DanceabilityPopularityAnalysis {
         |91-100           |70.97142857142858 |
         +-----------------+------------------+
         */
+        resultSmallerPartitioned.write()
+                .mode(SaveMode.Overwrite)
+                .option("header", "true")
+                .csv("data/analysis_results/danceability_popularity.csv");
 
         resultSmallerPartitioned.show(false);
     }
