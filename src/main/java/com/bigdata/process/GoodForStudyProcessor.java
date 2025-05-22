@@ -2,25 +2,12 @@ package com.bigdata.process;
 import static org.apache.spark.sql.functions.when;
 import static org.apache.spark.sql.functions.col;
 import static org.apache.spark.sql.functions.lit;
+import static org.apache.spark.sql.functions.lower;
 
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SaveMode;
 import org.apache.spark.sql.SparkSession;
-
-// 1) vs. all others.
-// 2) vs. [Good For Party, Good for Exercise, Running, Good for Driving, Good for Social Gathering]
-// 3) similar to [Good for Relaxation/Meditation?, Good for Yoga / Stretching?]
-
-/*
- start:
- - tempo
- - loudness (-5.45db)
- - energy <- less
- - speechiness <- less
- - positiveness <- more
- - instrumentalness <- more
- */
 
 public class GoodForStudyProcessor {
 
@@ -45,6 +32,7 @@ public class GoodForStudyProcessor {
                 .csv("data/spotify_dataset.csv");
 
 
+        // just compare per "Good for Work/Study 0 or 1
         Dataset<Row> cleanedDf = df.select("Good for Work/Study", "Tempo", "Loudness (db)", "Energy",
                 "Positiveness", "Speechiness", "Instrumentalness", "Danceability", "Acousticness", "Popularity",
                         "Time signature", "emotion", "Key")
@@ -58,13 +46,13 @@ public class GoodForStudyProcessor {
         Dataset<Row> withBuckets = cleanedDf.withColumn("good_for_study", when(col("Good for Work/Study")
                         .equalTo(1), lit(1))
                         .otherwise(lit(0))
-                );
+                ).withColumn("emotion", lower(col("emotion")));
 
         withBuckets.write().partitionBy("good_for_study").mode(SaveMode.Overwrite).parquet(PARQUET_ROOT_FOLDER+"good_for_study.parquet");
 
 
 
-        // COMPARE DIFFERENT TAGS
+        // COMPARE SONGS WITH DIFFERENT TAGS
         Dataset<Row> cleanedTagComparisonDf = df.select(
                 "Good for Work/Study", "Good for Relaxation/Meditation", "Good for Yoga/Stretching",
                 "Good For Party", "Good for Exercise", "Good for Running",
@@ -96,8 +84,8 @@ public class GoodForStudyProcessor {
         cleanedParquetTagComparisonDf.printSchema();
         cleanedParquetTagComparisonDf.show(5, false);
 
-
         cleanedParquetTagComparisonDf.write().partitionBy("good_for_study", "good_for_party").mode(SaveMode.Overwrite).parquet(PARQUET_ROOT_FOLDER+"good_for_study_tag_comp.parquet");
 
+        spark.stop();
     }
 }

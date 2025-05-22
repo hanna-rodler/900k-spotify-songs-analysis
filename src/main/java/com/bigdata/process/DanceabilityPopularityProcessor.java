@@ -57,7 +57,6 @@ public class DanceabilityPopularityProcessor {
 
         withSmallerBuckets.write().partitionBy("popularity_bucket").mode(SaveMode.Overwrite).parquet(PARQUET_ROOT_FOLDER+"popularity_bucket_smaller.parquet");
 
-
         spark.stop();
     }
 }

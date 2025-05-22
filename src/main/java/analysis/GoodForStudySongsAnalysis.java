@@ -6,14 +6,13 @@ import org.apache.spark.sql.SaveMode;
 import org.apache.spark.sql.SparkSession;
 
 import java.io.File;
-import java.util.Arrays;
 
 import static org.apache.commons.io.FileUtils.deleteDirectory;
 import static org.apache.spark.sql.functions.*;
 
 public class GoodForStudySongsAnalysis {
     private static final String PARQUET_ROOT_FOLDER = "data/processed/";
-    private static final String CSV_OUTPUT_PATH = "data/analysis_results/good_for_study.csv";
+    private static final String OUTPUT_PATH = "data/analysis_results/";
 
     public static void main(String[] args) {
         System.setProperty("hadoop.home.dir", "C:/hadoop/");
@@ -27,6 +26,9 @@ public class GoodForStudySongsAnalysis {
 
         Dataset<Row> df = spark.read().parquet(PARQUET_ROOT_FOLDER + "good_for_study.parquet");
 
+        /* -------------------------------------------------------
+         * compare good for study with not good for study songs
+         ------------------------------------------------------- */
         Dataset<Row> results = df.groupBy("good_for_study")
                 .agg(
                         avg("Tempo").alias("avg_tempo"),
@@ -41,79 +43,41 @@ public class GoodForStudySongsAnalysis {
                 );
 
         results.show();
-        /* Good for study: slower, less loud, less energetic, more positive, less speechy, more instrumental. less danceable. a lot more acousticness. little less popular.
-
-             +--------------+------------------+------------------+-----------------+----------------+------------------+--------------------+------------------+-----------------+-----------------+
-            |good_for_study|         avg_tempo|      avg_loudness|       avg_energy|avg_positiveness|   avg_speechiness|avg_instrumentalness|  avg_danceability| avg_acousticness|   avg_popularity|
-            +--------------+------------------+------------------+-----------------+----------------+------------------+--------------------+------------------+-----------------+-----------------+
-            |             0|0.5475057388356092|0.7699728065855758|65.68058260667085|48.2482780982806|11.971988222518666|   6.942614156915571|59.078325038463966|21.77385581942936|30.62009353217807|
-            |             1|0.3373019096733573|0.6692051661966613| 27.7226389141211|32.9851029041551| 4.541719654304327|  12.360722535101607| 48.82626975681919|77.13557914406582|28.89265785990501|
-            +--------------+------------------+------------------+-----------------+----------------+------------------+--------------------+------------------+-----------------+-----------------+
-         */
-
-        // TODO: check for emotions to exclude "True", "pink" and "thirst"
 
         System.out.println("\n--- Häufigkeit der Taktarten für 'Good for Study' Songs ---");
         Dataset<Row> timeSignatureCountsByStudyStatus = df
                 .groupBy("good_for_study", "Time signature")
                 .count()
                 .orderBy(asc("good_for_study"), desc("count"));
-        /* --- Häufigkeit der Taktarten für 'Good for Study' Songs ---
-            Taktart-Verteilung für 'Good for Study' (1 = Ja, 0 = Nein):
-            +--------------+--------------+------+
-            |good_for_study|Time signature|count |
-            +--------------+--------------+------+
-            |0             |4/4           |421235|
-            |0             |3/4           |28163 |
-            |0             |5/4           |7488  |
-            |0             |1/4           |2630  |
-            |1             |4/4           |30276 |
-            |1             |3/4           |6446  |
-            |1             |5/4           |1058  |
-            |1             |1/4           |748   |
-            +--------------+--------------+------+
-         */
 
-        System.out.println("Taktart-Verteilung für 'Good for Study' (1 = Ja, 0 = Nein):");
+        System.out.println("Taktart-Verteilung für 'Good for Study':");
         timeSignatureCountsByStudyStatus.show(false);
-        // Gruppieren nach "Time signature" und zählen
-         Dataset<Row> pivotedCounts = timeSignatureCountsByStudyStatus
+
+/*         Dataset<Row> pivotedCounts = timeSignatureCountsByStudyStatus
              .groupBy("Time signature")
-             .pivot("good_for_study", Arrays.asList(0, 1)) // Pivotieren nach good_for_study mit Werten 0 und 1
-             .agg(first("count").alias("count")); // Aggregiere die Zählungen
-         pivotedCounts.show(false);
+             .pivot("good_for_study", Arrays.asList(0, 1))
+             .agg(first("count").alias("count"));
+         pivotedCounts.show(false);*/
         Dataset<Row> goodForStudyTimeSignatureCounts = df
-                .groupBy("Time signature") // Gruppiere nach der Taktart
-                .count() // Zähle die Vorkommen jeder Taktart
-                .orderBy(desc("count")); // Ordne absteigend nach Häufigkeit
+                .groupBy("Time signature")
+                .count()
+                .orderBy(desc("count"));
         goodForStudyTimeSignatureCounts.show(false);
-        /*
-            +--------------+------+-----+
-            |Time signature|0     |1    |
-            +--------------+------+-----+
-            |3/4           |28163 |6446 |
-            |4/4           |421235|30276|
-            |5/4           |7488  |1058 |
-            |1/4           |2630  |748  |
-            +--------------+------+-----+
-         */
 
         System.out.println("\n--- Häufigkeit und Prozent der Taktarten nach 'Good for Study' Status ---");
-
-        // 1. Gesamtzahl der Songs pro 'good_for_study' Gruppe ermitteln
+        // sum per good_for_study group
         Dataset<Row> totalCountsByStudyStatus = df
                 .groupBy("good_for_study")
                 .count()
-                .withColumnRenamed("count", "total_songs_in_category"); // Benenne die Spalte um, um Konflikte zu vermeiden
+                .withColumnRenamed("count", "total_songs_in_category");
 
-        // 3. Joine die beiden DataFrames, um die Gesamtzahlen für die Prozentberechnung hinzuzufügen
+        // join df with total number
         Dataset<Row> timeSignatureWithPercentageRes = timeSignatureCountsByStudyStatus.join(
                 totalCountsByStudyStatus,
-                "good_for_study" // Join-Spalte
+                "good_for_study"
         );
 
-        // 4. Prozentsatz berechnen
-        // Wichtig: Cast zu Double, um Fließkomma-Division zu erhalten
+        // calc percentage
         Dataset<Row> timeSignaturePercRes = timeSignatureWithPercentageRes.withColumn(
                         "percentage",
                         round((col("count").cast("double").divide(col("total_songs_in_category"))).multiply(100), 2)
@@ -121,7 +85,7 @@ public class GoodForStudySongsAnalysis {
                 .select("good_for_study", "Time signature", "count", "percentage")
                 .orderBy(asc("good_for_study"), desc("percentage"));
 
-        System.out.println("Taktart-Verteilung (Anzahl und Prozent) für 'Good for Study' (1 = Ja, 0 = Nein):");
+        System.out.println("Taktart-Verteilung (Anzahl und Prozent) für 'Good for Study':");
         timeSignaturePercRes.show(false);
         /*
         +--------------+--------------+------+----------+
@@ -138,10 +102,10 @@ public class GoodForStudySongsAnalysis {
         +--------------+--------------+------+----------+
          */
 
-        System.out.println("\n--- Häufigkeit der Taktarten für 'Good for Study' Songs ---");
+        System.out.println("\nHäufigkeit der Emotionen für 'Good for Study' Songs");
         Dataset<Row> emotionRes = df
-                .groupBy("good_for_study", "emotion") // Gruppiere nach beiden Spalten
-                .count() // Zähle die Vorkommen jeder Kombination
+                .groupBy("good_for_study", "emotion")
+                .count()
                 .orderBy(asc("good_for_study"), desc("count"));
 
         emotionRes.show();
@@ -174,21 +138,15 @@ public class GoodForStudySongsAnalysis {
 
 
         // KEYS
-        System.out.println("\n--- Häufigkeit der Taktarten für 'Good for Study' Songs ---");
+        System.out.println("\n--- Häufigkeit der Keys für 'Good for Study' Songs ---");
         Dataset<Row> keyRes = df
-                .groupBy("good_for_study", "key") // Gruppiere nach beiden Spalten
+                .groupBy("good_for_study", "key")
                 .count();
-//                .orderBy(asc("good_for_study"), desc("count"));
-
-
-        // 2. Joine mit den bereits berechneten Gesamtzahlen pro good_for_study-Kategorie
-        // Wir können totalCountsByStudyStatus hier wiederverwenden!
+        // calc key percentags
         Dataset<Row> keyResWithTotalCounts = keyRes.join(
                 totalCountsByStudyStatus,
                 "good_for_study"
         );
-
-        // 3. Prozentsatz berechnen und Spalten auswählen/ordnen
         Dataset<Row> keysPercRes = keyResWithTotalCounts.withColumn(
                         "percentage",
                         round((col("count").cast("double").divide(col("total_songs_in_category"))).multiply(100), 2)
@@ -196,47 +154,35 @@ public class GoodForStudySongsAnalysis {
                 .select("good_for_study", "key", "count", "percentage")
                 .orderBy(asc("good_for_study"), desc("percentage"));
 
-        System.out.println("Tonart-Verteilung (Anzahl und Prozent) für 'Good for Study' (1 = Ja, 0 = Nein):");
+        System.out.println("Key-Verteilung für 'Good for Study':");
         keysPercRes.show(false);
-
-
-        results.write().mode(SaveMode.Overwrite).parquet("data/analysis_results/good_for_study.parquet");
-        System.out.println("\nSpeichere Ergebnisse als CSV-Datei unter: " + CSV_OUTPUT_PATH);
-
-        // Optional: Vorhandenes Verzeichnis löschen, um Fehler zu vermeiden
-        try {
-            File outputDir = new File(CSV_OUTPUT_PATH);
-            if (outputDir.exists()) {
-                deleteDirectory(outputDir);
-            }
-        } catch (Exception e) {
-            System.err.println("Fehler beim Löschen alter CSV-Ausgabeverzeichnisse: " + e.getMessage());
-        }
+        
         results.write()
                 .mode(SaveMode.Overwrite)
                 .option("header", "true")
-                .csv(CSV_OUTPUT_PATH);
+                .csv(OUTPUT_PATH +"good_for_study.csv");
+        results.write().mode(SaveMode.Overwrite).parquet(OUTPUT_PATH +"good_for_study.parquet");
 
-        // time Sig
-        timeSignaturePercRes.write().mode(SaveMode.Overwrite).parquet("data/analysis_results/good_for_study_time_signature.parquet");
+        // time Signature
+        timeSignaturePercRes.write().mode(SaveMode.Overwrite).parquet(OUTPUT_PATH +"good_for_study_time_signature.parquet");
         timeSignaturePercRes.write()
                 .mode(SaveMode.Overwrite)
                 .option("header", "true")
-                .csv("data/analysis_results/good_for_study_with_time_signature.csv");
+                .csv(OUTPUT_PATH +"good_for_study_with_time_signature.csv");
 
-        // emotion save
-        emotionRes.write().mode(SaveMode.Overwrite).parquet("data/analysis_results/good_for_study_emotion.parquet");
+        // emotion
+        emotionRes.write().mode(SaveMode.Overwrite).parquet(OUTPUT_PATH +"good_for_study_emotion.parquet");
         emotionRes.write()
                 .mode(SaveMode.Overwrite)
                 .option("header", "true")
-                .csv("data/analysis_results/good_for_study_emotion.csv");
+                .csv(OUTPUT_PATH +"good_for_study_emotion.csv");
 
-        // key sav
-        keysPercRes.write().mode(SaveMode.Overwrite).parquet("data/analysis_results/good_for_study_keys.parquet");
+        // key
+        keysPercRes.write().mode(SaveMode.Overwrite).parquet(OUTPUT_PATH +"good_for_study_keys.parquet");
         keysPercRes.write()
                 .mode(SaveMode.Overwrite)
                 .option("header", "true")
-                .csv("data/analysis_results/good_for_study_keys.csv");
+                .csv(OUTPUT_PATH +"good_for_study_keys.csv");
 
 
 
@@ -246,100 +192,91 @@ public class GoodForStudySongsAnalysis {
 
         Dataset<Row> tagCompDf = spark.read().parquet(PARQUET_ROOT_FOLDER + "good_for_study_tag_comp.parquet");
 
+        // just good for study
         Dataset<Row> goodForStudySongs = tagCompDf.filter(
-                col("good_for_study").equalTo(1));
+                col("good_for_study").equalTo(1))
+                .withColumn("tagged_as", lit("good for study"))
+                .drop("good_for_study");
         System.out.println("Study/Work songs " + goodForStudySongs.count());
         goodForStudySongs.show(5, false);
-        Dataset<Row> goodForStudySongsRes = calcAverages(goodForStudySongs);
+        Dataset<Row> goodForStudySongsRes = calcAverages(goodForStudySongs, "tagged_as");
         goodForStudySongsRes.show();
         goodForStudySongsRes.write()
                 .mode(SaveMode.Overwrite)
                 .option("header", "true")
-                .csv("data/analysis_results/good_for_study_songs.csv");
-/*
-         just for good for study = 38531 songs
-            +--------------+------------------+------------------+----------------+----------------+-----------------+--------------------+-----------------+-----------------+-----------------+
-            |good_for_study|         avg_tempo|      avg_loudness|      avg_energy|avg_positiveness|  avg_speechiness|avg_instrumentalness| avg_danceability| avg_acousticness|   avg_popularity|
-            +--------------+------------------+------------------+----------------+----------------+-----------------+--------------------+-----------------+-----------------+-----------------+
-            |             1|0.3373019096733573|0.6692051661966613|27.7226389141211|32.9851029041551|4.541719654304327|  12.360722535101607|48.82626975681919|77.13557914406582|28.89265785990501|
-            +--------------+------------------+------------------+----------------+----------------+-----------------+--------------------+-----------------+-----------------+-----------------+
-*/
+                .csv(OUTPUT_PATH +"good_for_study_songs.csv");
 
 
-        // calm songs = good for study/work, relaxation/meditation, yoga/stretching
+        // CALM songs = good for study/work, relaxation/meditation, yoga/stretching
         Dataset<Row> goodForCalmSongs = tagCompDf.filter(
-                col("good_for_study").equalTo(1)
-                .and(col("good_for_relaxation_meditation").equalTo(1))
-                .and(col("good_for_yoga_stretching").equalTo(1))
-        );
+                        col("good_for_study").equalTo(1)
+                                .and(col("good_for_relaxation_meditation").equalTo(1))
+                                .and(col("good_for_yoga_stretching").equalTo(1))
+                )
+                .withColumn("tagged_as", lit("good for calm"))
+                .drop("good_for_study")
+                .drop("good_for_relaxation_meditation")
+                .drop("good_for_yoga_stretching");
         System.out.println("Calm songs " + goodForCalmSongs.count());
         goodForCalmSongs.show(5, false);
-        Dataset<Row> goodForCalmSongsRes = calcAverages(goodForCalmSongs);
+        Dataset<Row> goodForCalmSongsRes = calcAverages(goodForCalmSongs, "tagged_as");
         goodForCalmSongsRes.show();
         goodForCalmSongsRes.write()
                 .mode(SaveMode.Overwrite)
                 .option("header", "true")
-                .csv("data/analysis_results/good_for_calmness_songs.csv");
-/*
-         good for study/work, relaxation/meditation, yoga/stretching =  10876 songs
-            +------------------+------------------+------------------+-----------------+-----------------+--------------------+-----------------+----------------+------------------+
-            |         avg_tempo|      avg_loudness|        avg_energy| avg_positiveness|  avg_speechiness|avg_instrumentalness| avg_danceability|avg_acousticness|    avg_popularity|
-            +------------------+------------------+------------------+-----------------+-----------------+--------------------+-----------------+----------------+------------------+
-            |0.2752545640897837|0.6121784544538358|16.268205222508275|24.97122103714601|4.408789996322177|   19.28714600956234|40.82603898492093|87.8843324751747|28.730323648400148|
-            +------------------+------------------+------------------+-----------------+-----------------+--------------------+-----------------+----------------+------------------+
+                .csv(OUTPUT_PATH +"good_for_calmness_songs.csv");
 
-*/
-
-
-        // party songs
+        // just PARTY songs
         Dataset<Row> goodForPartySongs = tagCompDf.filter(
-                col("good_for_party").equalTo(1));
-        Dataset<Row> goodPartySongsAvgs = calcAverages(goodForPartySongs);
+                col("good_for_party").equalTo(1))
+                .withColumn("tagged_as", lit("good for party"))
+                .drop("good_for_party");
+        Dataset<Row> goodPartySongsRes = calcAverages(goodForPartySongs, "tagged_as");
         System.out.println("Good for partying songs" + goodForPartySongs.count());
-        goodPartySongsAvgs.show();
-        goodPartySongsAvgs.write()
+        goodPartySongsRes.show();
+        goodPartySongsRes.write()
                 .mode(SaveMode.Overwrite)
                 .option("header", "true")
-                .csv("data/analysis_results/good_for_party_songs.csv");
-/*
-         just for good for party = 25719 songs
-            +--------------+------------------+------------------+-----------------+-----------------+------------------+--------------------+-----------------+------------------+-----------------+
-            |good_for_party|         avg_tempo|      avg_loudness|       avg_energy| avg_positiveness|   avg_speechiness|avg_instrumentalness| avg_danceability|  avg_acousticness|   avg_popularity|
-            +--------------+------------------+------------------+-----------------+-----------------+------------------+--------------------+-----------------+------------------+-----------------+
-            |             1|0.6588638565527887|0.8014300858473167|77.74124188343248|60.13491970916443|11.433609393833352|   4.988024417745636|66.67697033321669|12.488860375597808|55.23360161748124|
-            +--------------+------------------+------------------+-----------------+-----------------+------------------+--------------------+-----------------+------------------+-----------------+
+                .csv(OUTPUT_PATH +"good_for_party_songs.csv");
 
-*/
-
-        // TODO: merge activity / calmness / party / study in code.
-
-        // active songs = good for party, running, exercise
+        // ACTIVE songs = good for party, running, exercise
         Dataset<Row> goodForActiveSongs = tagCompDf.filter(
                 col("good_for_party").equalTo(1)
                 .and(col("good_for_running").equalTo(1))
                 .and(col("good_for_exercise").equalTo(1))
-        ).cache();
+        ).withColumn("tagged_as", lit("good for activities"))
+                .drop("good_for_party")
+                .drop("good_for_running")
+                .drop("good_for_exercise");
         System.out.println("Active songs" + goodForActiveSongs.count());
         goodForActiveSongs.show(5, false);
-        Dataset<Row> goodForActiveSongsRes = calcAverages(goodForActiveSongs);
+        Dataset<Row> goodForActiveSongsRes = calcAverages(goodForActiveSongs, "tagged_as");
         goodForActiveSongsRes.show();
         goodForActiveSongsRes.write()
                 .mode(SaveMode.Overwrite)
                 .option("header", "true")
-                .csv("data/analysis_results/good_for_activities_songs.csv");
-        /* good for party, running, exercise = 7683 songs
-            +------------------+------------------+-----------------+-----------------+------------------+--------------------+-----------------+------------------+------------------+
-            |         avg_tempo|      avg_loudness|       avg_energy| avg_positiveness|   avg_speechiness|avg_instrumentalness| avg_danceability|  avg_acousticness|    avg_popularity|
-            +------------------+------------------+-----------------+-----------------+------------------+--------------------+-----------------+------------------+------------------+
-            |0.7533361521301009|0.8112882867359859|82.64675257061045|62.94598464141611|14.053624886112196|  4.1918521410907195|62.81205258362619|11.553689964857478|54.758557855004554|
-            +------------------+------------------+-----------------+-----------------+------------------+--------------------+-----------------+------------------+------------------+
-         */
+                .csv(OUTPUT_PATH +"good_for_activities_songs.csv");
+
+        Dataset<Row> tagComparison = goodForStudySongsRes
+                .unionByName(goodForCalmSongsRes)
+                        .unionByName(goodForActiveSongsRes)
+                                .unionByName(goodPartySongsRes);
+
+        tagComparison.show(5, false);
+        tagComparison
+                .coalesce(1)
+                .write()
+                .mode(SaveMode.Overwrite)
+                .option("header", "true")
+                .csv(OUTPUT_PATH +"tag_comparison.csv");
+
 
         spark.stop();
     }
 
-    private static Dataset<Row> calcAverages(Dataset<Row> df) {
+    private static Dataset<Row> calcAverages(Dataset<Row> df, String groupedBy) {
         return df
+                .groupBy(groupedBy)
                 .agg(
                         avg("Tempo").alias("avg_tempo"),
                         avg("Loudness (db)").alias("avg_loudness"),
