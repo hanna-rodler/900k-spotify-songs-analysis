@@ -20,8 +20,6 @@ public class DanceabilityPopularityProcessor {
                 .config("spark.driver.bindAddress", "127.0.0.1")
                 .getOrCreate();
 
-        JavaSparkContext jsc = new JavaSparkContext(spark.sparkContext());
-
         // Spark appearenntly sets "snappy" compression automatically
         //read csv
         Dataset<Row> df = spark.read()
@@ -58,7 +56,6 @@ public class DanceabilityPopularityProcessor {
                 .otherwise("91-100"));
 
         withSmallerBuckets.write().partitionBy("popularity_bucket").mode(SaveMode.Overwrite).parquet(PARQUET_ROOT_FOLDER+"popularity_bucket_smaller.parquet");
-
 
         spark.stop();
     }
