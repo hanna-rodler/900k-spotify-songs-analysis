@@ -109,32 +109,6 @@ public class GoodForStudySongsAnalysis {
                 .orderBy(asc("good_for_study"), desc("count"));
 
         emotionRes.show();
-        /*
-            +--------------+---------+------+
-            |good_for_study|  emotion| count|
-            +--------------+---------+------+
-            |             0|      joy|174092|
-            |             0|  sadness|142959|
-            |             0|    anger| 91586|
-            |             0|     fear| 23925|
-            |             0|     love| 22403|
-            |             0| surprise|  4529|
-            |             0|     True|    14|
-            |             0|     pink|     2|
-            |             0|     Love|     2|
-            |             0|   thirst|     1|
-            |             0| interest|     1|
-            |             0|confusion|     1|
-            |             0|    angry|     1|
-            |             1|      joy| 15276|
-            |             1|  sadness| 13849|
-            |             1|    anger|  3903|
-            |             1|     love|  2976|
-            |             1|     fear|  2076|
-            |             1| surprise|   445|
-            |             1|     True|     3|
-            +--------------+---------+------+
-         */
 
 
         // KEYS
@@ -164,21 +138,21 @@ public class GoodForStudySongsAnalysis {
         results.write().mode(SaveMode.Overwrite).parquet(OUTPUT_PATH +"good_for_study.parquet");
 
         // time Signature
-        timeSignaturePercRes.write().mode(SaveMode.Overwrite).parquet(OUTPUT_PATH +"good_for_study_time_signature.parquet");
+//        timeSignaturePercRes.write().mode(SaveMode.Overwrite).parquet(OUTPUT_PATH +"good_for_study_time_signature.parquet");
         timeSignaturePercRes.write()
                 .mode(SaveMode.Overwrite)
                 .option("header", "true")
                 .csv(OUTPUT_PATH +"good_for_study_with_time_signature.csv");
 
         // emotion
-        emotionRes.write().mode(SaveMode.Overwrite).parquet(OUTPUT_PATH +"good_for_study_emotion.parquet");
+//        emotionRes.write().mode(SaveMode.Overwrite).parquet(OUTPUT_PATH +"good_for_study_emotion.parquet");
         emotionRes.write()
                 .mode(SaveMode.Overwrite)
                 .option("header", "true")
                 .csv(OUTPUT_PATH +"good_for_study_emotion.csv");
 
         // key
-        keysPercRes.write().mode(SaveMode.Overwrite).parquet(OUTPUT_PATH +"good_for_study_keys.parquet");
+//        keysPercRes.write().mode(SaveMode.Overwrite).parquet(OUTPUT_PATH +"good_for_study_keys.parquet");
         keysPercRes.write()
                 .mode(SaveMode.Overwrite)
                 .option("header", "true")
@@ -218,13 +192,8 @@ public class GoodForStudySongsAnalysis {
                 .drop("good_for_relaxation_meditation")
                 .drop("good_for_yoga_stretching");
         System.out.println("Calm songs " + goodForCalmSongs.count());
-        goodForCalmSongs.show(5, false);
         Dataset<Row> goodForCalmSongsRes = calcAverages(goodForCalmSongs, "tagged_as");
-        goodForCalmSongsRes.show();
-        goodForCalmSongsRes.write()
-                .mode(SaveMode.Overwrite)
-                .option("header", "true")
-                .csv(OUTPUT_PATH +"good_for_calmness_songs.csv");
+        goodForCalmSongsRes.show(5, false);
 
         // just PARTY songs
         Dataset<Row> goodForPartySongs = tagCompDf.filter(
@@ -234,10 +203,6 @@ public class GoodForStudySongsAnalysis {
         Dataset<Row> goodPartySongsRes = calcAverages(goodForPartySongs, "tagged_as");
         System.out.println("Good for partying songs" + goodForPartySongs.count());
         goodPartySongsRes.show();
-        goodPartySongsRes.write()
-                .mode(SaveMode.Overwrite)
-                .option("header", "true")
-                .csv(OUTPUT_PATH +"good_for_party_songs.csv");
 
         // ACTIVE songs = good for party, running, exercise
         Dataset<Row> goodForActiveSongs = tagCompDf.filter(
@@ -252,10 +217,6 @@ public class GoodForStudySongsAnalysis {
         goodForActiveSongs.show(5, false);
         Dataset<Row> goodForActiveSongsRes = calcAverages(goodForActiveSongs, "tagged_as");
         goodForActiveSongsRes.show();
-        goodForActiveSongsRes.write()
-                .mode(SaveMode.Overwrite)
-                .option("header", "true")
-                .csv(OUTPUT_PATH +"good_for_activities_songs.csv");
 
         Dataset<Row> tagComparison = goodForStudySongsRes
                 .unionByName(goodForCalmSongsRes)
