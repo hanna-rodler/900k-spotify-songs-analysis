@@ -25,7 +25,16 @@ public class TempoByEmotionAnalysis {
                 .csv("data/raw/spotify_dataset.csv");
 
         //only necessary columns
-        Dataset<Row> filteredDf = df.select("emotion", "Tempo").na().drop();
+        Dataset<Row> filteredCsv = df.select("emotion", "Tempo").na().drop();
+
+        //save as parquet
+        filteredCsv.write()
+                .mode(SaveMode.Overwrite)
+                .parquet("data/processed/cleaned_spotify.parquet");
+
+        //read parquet
+        Dataset<Row> filteredDf = spark.read()
+                .parquet("data/processed/cleaned_spotify.parquet");
 
 
         Dataset<Row> groupedTempo = filteredDf.groupBy("emotion")
@@ -42,7 +51,7 @@ public class TempoByEmotionAnalysis {
         //show results
         groupedTempo.show(50, false);
 
-        //save as parquet file
+        //save results in parquet file
         groupedTempo.write()
                 .mode(SaveMode.Overwrite)
                 .option("compression", "snappy")
